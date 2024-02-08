@@ -1,0 +1,48 @@
+% Constants
+#const n1=24.  % X park size
+#const n2=24.  % Y park size
+#const startX=13.
+#const d=6.
+
+% Cell range
+cell(X,Y) :- X=0..n1, Y=0..n2.
+
+% People positions
+
+ p(4,19).
+ p(13,7).
+ p(20,4).
+
+% Optional Movements
+{move(X,Y,X,Y+1)} :- cell(X,Y), Y < n2, not p(X,Y). 
+{move(X,Y,X+1,Y)} :- cell(X,Y), X < n1, not p(X,Y). 
+{move(X,Y,X-1,Y)} :- cell(X,Y), X > 0, not p(X,Y).
+
+% Path edge between the cells (X1,Y1) and (X2,Y2)
+path(X1,Y1,X2,Y2) :- move(X1,Y1,X2,Y2).
+
+% Connectivity Constraints
+:- path(X1,Y1,_,_), X1 != startX, not path(_,_,X1,Y1).
+:- path(_,_,X2,Y2), Y2 != n2, not path(X2,Y2,_,_).
+
+% Enforce that the path does not intersect itself
+:- path(X1,Y1,X2,Y2), path(X3,Y3,X4,Y4), X1 == X4, Y1 == Y4, X2 == X3, Y2 == Y3.
+
+% Start position
+:- not path(startX,0,_,_).
+
+% Path ends at (_,n2)
+:- not path(_,n2-1,_,n2).
+
+% Distance/Pythagorean theorem
+distance(X1,Y1,X2,Y2) :- cell(X1,Y1), cell(X2,Y2), (X1-X2)**2 + (Y1-Y2)**2 >= d**2.
+
+% Path is at a safe distance from each person
+:- path(X1,Y1,X2,Y2), p(Px,Py), not distance(X1,Y1,Px,Py).
+:- path(X1,Y1,X2,Y2), p(Px,Py), not distance(X2,Y2,Px,Py).
+
+:- path(X,Y,X1,Y1), path(X,Y,X2,Y2), X1 != X2, Y1 != Y2.
+
+% Output
+#show path/4.
+
